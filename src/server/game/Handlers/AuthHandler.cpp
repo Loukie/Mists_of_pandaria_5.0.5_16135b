@@ -21,26 +21,50 @@
 
 void WorldSession::SendAuthResponse(uint8 code, bool queued, uint32 queuePos)
 {
+    QueryResult result = LoginDatabase.PQuery("SELECT class, expansion FROM realm_classes WHERE realmId = %u", realmID);
+    QueryResult result2 = LoginDatabase.PQuery("SELECT race, expansion FROM realm_races WHERE realmId = %u", realmID);
+    if (!result || !result2)
+    {
+        sLog->outError(LOG_FILTER_GENERAL, "AuthHandler SendAuthResponse could not get db realm_classes and realm_races");
+        return;
+    }
     WorldPacket packet(SMSG_AUTH_RESPONSE, 1 /*bits*/ + 4 + 1 + 4 + 1 + 4 + 1 + 1 + (queued ? 4 : 0));
-    packet.WriteBit(queued);
-    if (queued)
-        packet.WriteBit(0);
 
-    packet.WriteBit(1);                                    // has account info
-
-    packet.FlushBits();
+    packet.WriteBit(1);
 
     // account info
-    packet << uint32(0);                                   // BillingTimeRemaining
-    packet << uint8(Expansion());                          // 0 - normal, 1 - TBC, 2 - WOTLK, 3 - CATA; must be set in database manually for each account
-    packet << uint32(0);
-    packet << uint8(Expansion());                          // Unknown, these two show the same
-    packet << uint32(0);                                   // BillingTimeRested
-    packet << uint8(0);                                    // BillingPlanFlags
+    packet.WriteBit(0);
+    packet.WriteBits(result->GetRowCount(), 25);
+    packet.WriteBits(0, 22);
+    packet.WriteBits(result2->GetRowCount(), 25);
+    packet.WriteBit(queued);
+    packet.FlushBits();
 
+    packet << uint8(0);
+    packet << uint8(Expansion());
+
+    do
+    {
+        Field* fields = result->Fetch();
+
+        packet << fields[0].GetUInt8();
+        packet << fields[1].GetUInt8();
+    } while (result->NextRow());
+
+    packet << uint32(0);
+    packet << uint32(0);
+    packet << uint32(0);
+
+    do
+    {
+        Field* fields = result2->Fetch();
+
+        packet << fields[0].GetUInt8();
+        packet << fields[1].GetUInt8();
+    } while (result2->NextRow());
+
+    packet << uint8(Expansion());
     packet << uint8(code);
-    if (queued)
-        packet << uint32(queuePos);                             // Queue position
 
     SendPacket(&packet);
 }
