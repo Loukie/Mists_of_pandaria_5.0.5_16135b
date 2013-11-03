@@ -75,7 +75,7 @@ float CONF_float_to_int16_limit = 2048.0f;   // Max accuracy = val/65536
 float CONF_flat_height_delta_limit = 0.005f; // If max - min less this value - surface is flat
 float CONF_flat_liquid_delta_limit = 0.001f; // If max - min less this value - liquid surface is flat
 
-uint32 CONF_TargetBuild = 16357;              // 5.4.0 17345
+uint32 CONF_TargetBuild = 16135;              // 5.0.5 16135
 
 // List MPQ for extract maps from
 char const* CONF_mpq_list[]=
@@ -93,7 +93,7 @@ char const* CONF_mpq_list[]=
 
 uint32 const Builds[] = { 13329, 13596, 13623, 13914, 14007, 14333, 14480, 14545, 15005, 15050, 15211, 15354, 15595, 16016, 16048, 16057, 0};
 #define LAST_DBC_IN_DATA_BUILD 16016    // after this build mpqs with dbc are back to locale folder
-#define NEW_BASE_SET_BUILD  16357
+#define NEW_BASE_SET_BUILD  16135
 
 char const* Locales[] =
 {
