@@ -187,6 +187,7 @@ SpellCategoryStore sSpellCategoryStore;
 PetFamilySpellsStore sPetFamilySpellsStore;
 
 
+DBCStorage <SpellMiscEntry> sSpellMiscStore(SpellMiscEntryfmt);
 DBCStorage <SpellReagentsEntry> sSpellReagentsStore(SpellReagentsEntryfmt);
 DBCStorage <SpellScalingEntry> sSpellScalingStore(SpellScalingEntryfmt);
 DBCStorage <SpellTotemsEntry> sSpellTotemsStore(SpellTotemsEntryfmt);
@@ -293,10 +294,9 @@ inline void LoadDBC(uint32& availableDbcLocales, StoreProblemList& errors, DBCSt
         // sort problematic dbc to (1) non compatible and (2) non-existed
         if (FILE* f = fopen(dbcFilename.c_str(), "rb"))
         {
-            std::ostringstream stream;
-            stream << dbcFilename << " exists, and has " << storage.GetFieldCount() << " field(s) (expected " << strlen(storage.GetFormat()) << "). Extracted file might be from wrong client version or a database-update has been forgotten.";
-            std::string buf = stream.str();
-            errors.push_back(buf);
+            char buf[100];
+            snprintf(buf, 100, " exists, and has %u field(s) (expected " SIZEFMTD "). Extracted file might be from wrong client version or a database-update has been forgotten.", storage.GetFieldCount(), strlen(storage.GetFormat()));
+            errors.push_back(dbcFilename + buf);
             fclose(f);
         }
         else
@@ -343,10 +343,6 @@ void LoadDBCStores(const std::string& dataPath)
     LoadDBC(availableDbcLocales, bad_dbc_files, sBattlemasterListStore,       dbcPath, "BattlemasterList.dbc");//15595
     LoadDBC(availableDbcLocales, bad_dbc_files, sBarberShopStyleStore,        dbcPath, "BarberShopStyle.dbc");//15595
     LoadDBC(availableDbcLocales, bad_dbc_files, sCharStartOutfitStore,        dbcPath, "CharStartOutfit.dbc");//15595
-    for (uint32 i = 0; i < sCharStartOutfitStore.GetNumRows(); ++i)
-        if (CharStartOutfitEntry const* outfit = sCharStartOutfitStore.LookupEntry(i))
-            sCharStartOutfitMap[outfit->Race | (outfit->Class << 8) | (outfit->Gender << 16)] = outfit;
-
     LoadDBC(availableDbcLocales, bad_dbc_files, sCharTitlesStore,             dbcPath, "CharTitles.dbc");//15595
     LoadDBC(availableDbcLocales, bad_dbc_files, sChatChannelsStore,           dbcPath, "ChatChannels.dbc");//15595
     LoadDBC(availableDbcLocales, bad_dbc_files, sChrClassesStore,             dbcPath, "ChrClasses.dbc");//15595
@@ -512,7 +508,8 @@ void LoadDBCStores(const std::string& dataPath)
         if (SpellCategoriesEntry const* category = sSpellCategoriesStore.LookupEntry(spell->SpellCategoriesId))
             sSpellCategoryStore[category->Category].insert(i);
     }
-
+	
+    LoadDBC(availableDbcLocales, bad_dbc_files, sSpellMiscStore,              dbcPath,"SpellMisc.dbc");
     LoadDBC(availableDbcLocales, bad_dbc_files, sSpellReagentsStore,          dbcPath,"SpellReagents.dbc");//15595
     LoadDBC(availableDbcLocales, bad_dbc_files, sSpellScalingStore,           dbcPath,"SpellScaling.dbc");//15595
     LoadDBC(availableDbcLocales, bad_dbc_files, sSpellTotemsStore,            dbcPath,"SpellTotems.dbc");//15595
@@ -545,7 +542,7 @@ void LoadDBCStores(const std::string& dataPath)
     // Must be done when sSkillLineAbilityStore, sSpellStore, sSpellLevelsStore and sCreatureFamilyStore are all loaded
     for (uint32 j = 0; j < sSkillLineAbilityStore.GetNumRows(); ++j)
     {
-        SkillLineAbilityEntry const* skillLine = sSkillLineAbilityStore.LookupEntry(j);
+        SkillLineAbilityEntry const *skillLine = sSkillLineAbilityStore.LookupEntry(j);
         if (!skillLine)
             continue;
 
@@ -557,7 +554,8 @@ void LoadDBCStores(const std::string& dataPath)
         if (spellInfo->SpellLevelsId && (!levels || levels->spellLevel))
             continue;
 
-        if (spellInfo && spellInfo->Attributes & SPELL_ATTR0_PASSIVE)
+        SpellMiscEntry const* spellMisc = sSpellMiscStore.LookupEntry(spellInfo->SpellMiscId);
+        if (spellInfo && spellMisc && spellMisc->Attributes & SPELL_ATTR0_PASSIVE)
         {
             for (uint32 i = 1; i < sCreatureFamilyStore.GetNumRows(); ++i)
             {
@@ -607,7 +605,7 @@ void LoadDBCStores(const std::string& dataPath)
     }
 
     // create talent spells set
-    for (unsigned int i = 0; i < sTalentStore.GetNumRows(); ++i)
+    /*for (unsigned int i = 0; i < sTalentStore.GetNumRows(); ++i)
     {
         TalentEntry const* talentInfo = sTalentStore.LookupEntry(i);
         if (!talentInfo)
@@ -616,35 +614,7 @@ void LoadDBCStores(const std::string& dataPath)
         for (int j = 0; j < MAX_TALENT_RANK; j++)
             if (talentInfo->RankID[j])
                 sTalentSpellPosMap[talentInfo->RankID[j]] = TalentSpellPos(i, j);
-    }
-
-    LoadDBC(availableDbcLocales, bad_dbc_files, sTalentTabStore,              dbcPath, "TalentTab.dbc");//15595
-
-    // prepare fast data access to bit pos of talent ranks for use at inspecting
-    {
-        // now have all max ranks (and then bit amount used for store talent ranks in inspect)
-        for (uint32 talentTabId = 1; talentTabId < sTalentTabStore.GetNumRows(); ++talentTabId)
-        {
-            TalentTabEntry const* talentTabInfo = sTalentTabStore.LookupEntry(talentTabId);
-            if (!talentTabInfo)
-                continue;
-
-            // prevent memory corruption; otherwise cls will become 12 below
-            if ((talentTabInfo->ClassMask & CLASSMASK_ALL_PLAYABLE) == 0)
-                continue;
-
-            // store class talent tab pages
-            for (uint32 cls = 1; cls < MAX_CLASSES; ++cls)
-                if (talentTabInfo->ClassMask & (1 << (cls - 1)))
-                    sTalentTabPages[cls][talentTabInfo->tabpage] = talentTabId;
-        }
-    }
-
-    LoadDBC(availableDbcLocales, bad_dbc_files, sTalentTreePrimarySpellsStore, dbcPath, "TalentTreePrimarySpells.dbc");
-    for (uint32 i = 0; i < sTalentTreePrimarySpellsStore.GetNumRows(); ++i)
-        if (TalentTreePrimarySpellsEntry const* talentSpell = sTalentTreePrimarySpellsStore.LookupEntry(i))
-            sTalentTreePrimarySpellsMap[talentSpell->TalentTree].push_back(talentSpell->SpellId);
-    sTalentTreePrimarySpellsStore.Clear();
+    }*/
 
     LoadDBC(availableDbcLocales, bad_dbc_files, sTaxiNodesStore,              dbcPath, "TaxiNodes.dbc");//15595
     LoadDBC(availableDbcLocales, bad_dbc_files, sTaxiPathStore,               dbcPath, "TaxiPath.dbc");//15595
@@ -904,6 +874,8 @@ uint32 GetMaxLevelForExpansion(uint32 expansion)
             return 80;
         case CONTENT_81_85:
             return 85;
+        case CONTENT_86_90:
+            return 90;
         default:
             break;
     }
