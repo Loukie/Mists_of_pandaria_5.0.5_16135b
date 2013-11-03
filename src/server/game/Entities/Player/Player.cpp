@@ -1978,27 +1978,26 @@ bool Player::BuildEnumData(PreparedQueryResult result, ByteBuffer* dataBuffer, B
     }
 
     // Packet content flags
-    bitBuffer->WriteBit(guid[3]);
-    bitBuffer->WriteBit(guildGuid[1]);
-    bitBuffer->WriteBit(guildGuid[7]);
-    bitBuffer->WriteBit(guildGuid[2]);
-    bitBuffer->WriteBits(uint32(name.length()), 7);
     bitBuffer->WriteBit(guid[4]);
-    bitBuffer->WriteBit(guid[7]);
+    bitBuffer->WriteBit(guildGuid[7]);
     bitBuffer->WriteBit(guildGuid[3]);
-    bitBuffer->WriteBit(guid[5]);
+    bitBuffer->WriteBit(guildGuid[0]);
+    bitBuffer->WriteBit(guildGuid[1]);
+    bitBuffer->WriteBit(atLoginFlags & AT_LOGIN_FIRST);
+    bitBuffer->WriteBit(guid[6]);
     bitBuffer->WriteBit(guildGuid[6]);
     bitBuffer->WriteBit(guid[1]);
-    bitBuffer->WriteBit(guildGuid[5]);
-    bitBuffer->WriteBit(guildGuid[4]);
-    bitBuffer->WriteBit(atLoginFlags & AT_LOGIN_FIRST);
-    bitBuffer->WriteBit(guid[0]);
+    bitBuffer->WriteBits(uint32(name.length()), 7);
+    bitBuffer->WriteBit(guildGuid[2]);
     bitBuffer->WriteBit(guid[2]);
-    bitBuffer->WriteBit(guid[6]);
-    bitBuffer->WriteBit(guildGuid[0]);
+    bitBuffer->WriteBit(guid[0]);
+    bitBuffer->WriteBit(guid[3]);
+    bitBuffer->WriteBit(guid[5]);
+    bitBuffer->WriteBit(guildGuid[4]);
+    bitBuffer->WriteBit(guid[7]);
+    bitBuffer->WriteBit(guildGuid[5]);
 
     // Character data
-    *dataBuffer << uint8(plrClass);                             // Class
     for (uint8 slot = 0; slot < INVENTORY_SLOT_BAG_END; ++slot)
     {
         uint32 visualbase = slot * 2;
@@ -2012,7 +2011,7 @@ bool Player::BuildEnumData(PreparedQueryResult result, ByteBuffer* dataBuffer, B
             continue;
         }
 
-        SpellItemEnchantmentEntry const* enchant = NULL;
+        SpellItemEnchantmentEntry const *enchant = NULL;
         uint32 enchants = GetUInt32ValueFromArray(equipment, visualbase + 1);
         for (uint8 enchantSlot = PERM_ENCHANTMENT_SLOT; enchantSlot <= TEMP_ENCHANTMENT_SLOT; ++enchantSlot)
         {
@@ -2031,42 +2030,43 @@ bool Player::BuildEnumData(PreparedQueryResult result, ByteBuffer* dataBuffer, B
         *dataBuffer << uint32(enchant ? enchant->aura_id : 0);
     }
 
-    *dataBuffer << uint32(petFamily);                           // Pet family
-    dataBuffer->WriteByteSeq(guildGuid[2]);
-    *dataBuffer << uint8(slot);                                 // List order
     *dataBuffer << uint8(hairStyle);                            // Hair style
-    dataBuffer->WriteByteSeq(guildGuid[3]);
-    *dataBuffer << uint32(petDisplayId);                        // Pet DisplayID
-    *dataBuffer << uint32(charFlags);                           // Character flags
+    *dataBuffer << uint8(plrRace);                              // Race
+    dataBuffer->WriteByteSeq(guid[0]);
+    dataBuffer->WriteByteSeq(guildGuid[4]);
+    *dataBuffer << uint8(facialHair);                           // Facial hair
     *dataBuffer << uint8(hairColor);                            // Hair color
-    dataBuffer->WriteByteSeq(guid[4]);
-    *dataBuffer << uint32(mapId);                               // Map Id
-    dataBuffer->WriteByteSeq(guildGuid[5]);
     *dataBuffer << float(z);                                    // Z
     dataBuffer->WriteByteSeq(guildGuid[6]);
-    *dataBuffer << uint32(petLevel);                            // Pet level
-    dataBuffer->WriteByteSeq(guid[3]);
-    *dataBuffer << float(y);                                    // Y
-    *dataBuffer << uint32(customizationFlag);                   // Character customization flags
-    *dataBuffer << uint8(facialHair);                           // Facial hair
     dataBuffer->WriteByteSeq(guid[7]);
-    *dataBuffer << uint8(gender);                               // Gender
-    dataBuffer->append(name.c_str(), name.length());            // Name
-    *dataBuffer << uint8(face);                                 // Face
-    dataBuffer->WriteByteSeq(guid[0]);
-    dataBuffer->WriteByteSeq(guid[2]);
-    dataBuffer->WriteByteSeq(guildGuid[1]);
-    dataBuffer->WriteByteSeq(guildGuid[7]);
-    *dataBuffer << float(x);                                    // X
-    *dataBuffer << uint8(skin);                                 // Skin
-    *dataBuffer << uint8(plrRace);                              // Race
-    *dataBuffer << uint8(level);                                // Level
-    dataBuffer->WriteByteSeq(guid[6]);
-    dataBuffer->WriteByteSeq(guildGuid[4]);
     dataBuffer->WriteByteSeq(guildGuid[0]);
-    dataBuffer->WriteByteSeq(guid[5]);
-    dataBuffer->WriteByteSeq(guid[1]);
+    *dataBuffer << uint32(charFlags);                           // Character flags
     *dataBuffer << uint32(zone);                                // Zone id
+    dataBuffer->WriteByteSeq(guid[5]);
+    dataBuffer->WriteByteSeq(guid[6]);
+    *dataBuffer << uint32(customizationFlag);                   // Character customization flags
+    *dataBuffer << uint32(mapId);                               // Map Id
+    dataBuffer->WriteByteSeq(guid[1]);
+    *dataBuffer << uint32(petDisplayId);                        // Pet DisplayID
+    dataBuffer->WriteByteSeq(guildGuid[1]);
+    *dataBuffer << uint8(face);                                 // Face
+    *dataBuffer << uint32(petFamily);                           // Pet family
+    *dataBuffer << uint8(skin);                                 // Skin
+    dataBuffer->WriteByteSeq(guid[4]);
+    dataBuffer->WriteByteSeq(guildGuid[5]);
+    dataBuffer->append(name.c_str(), name.length());            // Name
+    *dataBuffer << uint32(petLevel);                            // Pet level
+    *dataBuffer << uint8(gender);                               // Gender
+    *dataBuffer << float(x);                                    // X
+    *dataBuffer << uint8(plrClass);                             // Class
+    *dataBuffer << uint8(slot);                                 // List order
+    *dataBuffer << float(y);                                    // Y
+    dataBuffer->WriteByteSeq(guildGuid[3]);
+    dataBuffer->WriteByteSeq(guildGuid[7]);
+    dataBuffer->WriteByteSeq(guildGuid[2]);
+    *dataBuffer << uint8(level);                                // Level
+    dataBuffer->WriteByteSeq(guid[2]);
+    dataBuffer->WriteByteSeq(guid[3]);
     return true;
 }
 
@@ -3558,7 +3558,9 @@ void DeleteSpellFromAllPlayers(uint32 spellId)
 
 bool Player::AddTalent(uint32 spellId, uint8 spec, bool learning)
 {
-    SpellInfo const* spellInfo = sSpellMgr->GetSpellInfo(spellId);
+    sLog->outError(LOG_FILTER_GENERAL, "MOP->Player::AddTalent() disabled");
+    return false;
+    /*SpellInfo const* spellInfo = sSpellMgr->GetSpellInfo(spellId);
     if (!spellInfo)
     {
         // do character spell book cleanup (all characters)
@@ -3566,7 +3568,11 @@ bool Player::AddTalent(uint32 spellId, uint8 spec, bool learning)
         {
             TC_LOG_ERROR(LOG_FILTER_SPELLS_AURAS, "Player::addSpell: Non-existed in SpellStore spell #%u request, deleting for all characters in `character_spell`.", spellId);
 
-            DeleteSpellFromAllPlayers(spellId);
+            PreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_DEL_INVALID_SPELL);
+
+            stmt->setUInt32(0, spellId);
+
+            CharacterDatabase.Execute(stmt);
         }
         else
             TC_LOG_ERROR(LOG_FILTER_SPELLS_AURAS, "Player::addSpell: Non-existed in SpellStore spell #%u request.", spellId);
@@ -3581,7 +3587,11 @@ bool Player::AddTalent(uint32 spellId, uint8 spec, bool learning)
         {
             TC_LOG_ERROR(LOG_FILTER_SPELLS_AURAS, "Player::addTalent: Broken spell #%u learning not allowed, deleting for all characters in `character_talent`.", spellId);
 
-            DeleteSpellFromAllPlayers(spellId);
+            PreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_DEL_INVALID_SPELL);
+
+            stmt->setUInt32(0, spellId);
+
+            CharacterDatabase.Execute(stmt);
         }
         else
             TC_LOG_ERROR(LOG_FILTER_SPELLS_AURAS, "Player::addTalent: Broken spell #%u learning not allowed.", spellId);
@@ -3618,7 +3628,7 @@ bool Player::AddTalent(uint32 spellId, uint8 spec, bool learning)
         (*GetTalentMap(spec))[spellId] = newtalent;
         return true;
     }
-    return false;
+    return false;*/
 }
 
 bool Player::addSpell(uint32 spellId, bool active, bool learning, bool dependent, bool disabled, bool loading /*= false*/)
@@ -3773,7 +3783,8 @@ bool Player::addSpell(uint32 spellId, bool active, bool learning, bool dependent
     if (!disabled_case) // skip new spell adding if spell already known (disabled spells case)
     {
         // talent: unlearn all other talent ranks (high and low)
-        if (TalentSpellPos const* talentPos = GetTalentSpellPos(spellId))
+        sLog->outError(LOG_FILTER_GENERAL, "MOP->Player::addSpell()disable talent spell add");
+        /*if (TalentSpellPos const* talentPos = GetTalentSpellPos(spellId))
         {
             if (TalentEntry const* talentInfo = sTalentStore.LookupEntry(talentPos->talent_id))
             {
@@ -3789,7 +3800,7 @@ bool Player::addSpell(uint32 spellId, bool active, bool learning, bool dependent
             }
         }
         // non talent spell: learn low ranks (recursive call)
-        else if (uint32 prev_spell = sSpellMgr->GetPrevSpellInChain(spellId))
+        else */if (uint32 prev_spell = sSpellMgr->GetPrevSpellInChain(spellId))
         {
             if (!IsInWorld() || disabled)                    // at spells loading, no output, but allow save
                 addSpell(prev_spell, active, true, true, disabled);
@@ -4492,7 +4503,7 @@ bool Player::ResetTalents(bool no_cost)
 
     RemovePet(NULL, PET_SAVE_NOT_IN_SLOT, true);
 
-    for (uint32 talentId = 0; talentId < sTalentStore.GetNumRows(); ++talentId)
+    /*for (uint32 talentId = 0; talentId < sTalentStore.GetNumRows(); ++talentId)//MOP FIX COMPILE cause talent struture
     {
         TalentEntry const* talentInfo = sTalentStore.LookupEntry(talentId);
 
@@ -4531,19 +4542,13 @@ bool Player::ResetTalents(bool no_cost)
     }
 
     // Remove spec specific spells
-    uint32 const* talentTabs = GetTalentTabPages(getClass());
     for (uint32 i = 0; i < MAX_TALENT_TABS; ++i)
     {
-        if (std::vector<uint32> const* specSpells = GetTalentTreePrimarySpells(talentTabs[i]))
-            for (size_t j = 0; j < specSpells->size(); ++j)
-                removeSpell(specSpells->at(j), true);
-
-        TalentTabEntry const* talentTabInfo = sTalentTabStore.LookupEntry(talentTabs[i]);
-        for (uint32 j = 0; j < MAX_MASTERY_SPELLS; ++j)
-            if (uint32 mastery = talentTabInfo->MasterySpellId[j])
-                RemoveAurasDueToSpell(mastery);
-    }
-
+        std::vector<uint32> const* specSpells = GetTalentTreePrimarySpells(GetTalentTabPages(getClass())[i]);
+        if (specSpells)
+            for (size_t i = 0; i < specSpells->size(); ++i)
+                removeSpell(specSpells->at(i), true);
+    }*/
 
     SetPrimaryTalentTree(GetActiveSpec(), 0);
     SetFreeTalentPoints(talentPointsForLevel);
@@ -25485,7 +25490,9 @@ void Player::CompletedAchievement(AchievementEntry const* entry)
 
 bool Player::LearnTalent(uint32 talentId, uint32 talentRank)
 {
-    uint32 CurTalentPoints = GetFreeTalentPoints();
+    sLog->outError(LOG_FILTER_GENERAL, "MOP->Player::LearnTalent() need recheck, disable it now");
+    return false;
+    /*uint32 CurTalentPoints = GetFreeTalentPoints();
 
     if (CurTalentPoints == 0)
         return false;
@@ -25584,7 +25591,7 @@ bool Player::LearnTalent(uint32 talentId, uint32 talentRank)
     uint32 spellid = talentInfo->RankID[talentRank];
     if (spellid == 0)
     {
-        TC_LOG_ERROR(LOG_FILTER_PLAYER, "Talent.dbc have for talent: %u Rank: %u spell id = 0", talentId, talentRank);
+        sLog->outError(LOG_FILTER_PLAYER, "Talent.dbc have for talent: %u Rank: %u spell id = 0", talentId, talentRank);
         return false;
     }
 
@@ -25596,7 +25603,7 @@ bool Player::LearnTalent(uint32 talentId, uint32 talentRank)
     learnSpell(spellid, false);
     AddTalent(spellid, GetActiveSpec(), true);
 
-    TC_LOG_INFO(LOG_FILTER_GENERAL, "TalentID: %u Rank: %u Spell: %u Spec: %u\n", talentId, talentRank, spellid, GetActiveSpec());
+    sLog->outInfo(LOG_FILTER_GENERAL, "TalentID: %u Rank: %u Spell: %u Spec: %u\n", talentId, talentRank, spellid, GetActiveSpec());
 
     // set talent tree for player
     if (!GetPrimaryTalentTree(GetActiveSpec()))
@@ -25606,22 +25613,18 @@ bool Player::LearnTalent(uint32 talentId, uint32 talentRank)
         if (specSpells)
             for (size_t i = 0; i < specSpells->size(); ++i)
                 learnSpell(specSpells->at(i), false);
-
-        if (CanUseMastery())
-            for (uint32 i = 0; i < MAX_MASTERY_SPELLS; ++i)
-                if (SpellInfo const* masterySpell = sSpellMgr->GetSpellInfo(talentTabInfo->MasterySpellId[i]))
-                    if (masterySpell->IsPassive() && IsNeedCastPassiveSpellAtLearn(masterySpell))
-                        CastSpell(this, masterySpell->Id, true);
     }
 
     // update free talent points
     SetFreeTalentPoints(CurTalentPoints - (talentRank - curtalent_maxrank + 1));
-    return true;
+    return true;*/
 }
 
 void Player::LearnPetTalent(uint64 petGuid, uint32 talentId, uint32 talentRank)
 {
-    Pet* pet = GetPet();
+    sLog->outError(LOG_FILTER_GENERAL, "MOP->Player::LearnPetTalent() need recheck, disable it now");
+    return;
+    /*Pet* pet = GetPet();
 
     if (!pet)
         return;
@@ -25738,7 +25741,7 @@ void Player::LearnPetTalent(uint64 petGuid, uint32 talentId, uint32 talentRank)
     uint32 spellid = talentInfo->RankID[talentRank];
     if (spellid == 0)
     {
-        TC_LOG_ERROR(LOG_FILTER_PLAYER, "Talent.dbc have for talent: %u Rank: %u spell id = 0", talentId, talentRank);
+        sLog->outError(LOG_FILTER_PLAYER, "Talent.dbc have for talent: %u Rank: %u spell id = 0", talentId, talentRank);
         return;
     }
 
@@ -25748,10 +25751,10 @@ void Player::LearnPetTalent(uint64 petGuid, uint32 talentId, uint32 talentRank)
 
     // learn! (other talent ranks will unlearned at learning)
     pet->learnSpell(spellid);
-    TC_LOG_INFO(LOG_FILTER_PLAYER, "PetTalentID: %u Rank: %u Spell: %u\n", talentId, talentRank, spellid);
+    sLog->outInfo(LOG_FILTER_PLAYER, "PetTalentID: %u Rank: %u Spell: %u\n", talentId, talentRank, spellid);
 
     // update free talent points
-    pet->SetFreeTalentPoints(CurTalentPoints - (talentRank - curtalent_maxrank + 1));
+    pet->SetFreeTalentPoints(CurTalentPoints - (talentRank - curtalent_maxrank + 1));*/
 }
 
 void Player::AddKnownCurrency(uint32 itemId)
@@ -25830,7 +25833,9 @@ bool Player::CanSeeSpellClickOn(Creature const* c) const
 
 void Player::BuildPlayerTalentsInfoData(WorldPacket* data)
 {
-    *data << uint32(GetFreeTalentPoints());                 // unspentTalentPoints
+    sLog->outError(LOG_FILTER_GENERAL, "MOP->Player::BuildPlayerTalentsInfoData() disable it casuse talent dbc");
+    return;
+    /**data << uint32(GetFreeTalentPoints());                 // unspentTalentPoints
     *data << uint8(GetSpecsCount());                        // talent group count (0, 1 or 2)
     *data << uint8(GetActiveSpec());                        // talent group index (0 or 1)
 
@@ -25893,12 +25898,14 @@ void Player::BuildPlayerTalentsInfoData(WorldPacket* data)
             for (uint8 i = 0; i < MAX_GLYPH_SLOT_INDEX; ++i)
                 *data << uint16(GetGlyph(specIdx, i));               // GlyphProperties.dbc
         }
-    }
+    }*/
 }
 
 void Player::BuildPetTalentsInfoData(WorldPacket* data)
 {
-    uint32 unspentTalentPoints = 0;
+    sLog->outError(LOG_FILTER_GENERAL, "MOP->Player::BuildPetTalentsInfoData() disable it casuse talent dbc");
+    return;
+    /*uint32 unspentTalentPoints = 0;
     size_t pointsPos = data->wpos();
     *data << uint32(unspentTalentPoints);                   // [PH], unspentTalentPoints
 
@@ -25965,7 +25972,7 @@ void Player::BuildPetTalentsInfoData(WorldPacket* data)
         data->put<uint8>(countPos, talentIdCount);          // put real count
 
         break;
-    }
+    }*/
 }
 
 void Player::SendTalentsInfoData(bool pet)
@@ -26395,7 +26402,9 @@ void Player::UpdateSpecCount(uint8 count)
 
 void Player::ActivateSpec(uint8 spec)
 {
-    if (GetActiveSpec() == spec)
+    sLog->outError(LOG_FILTER_GENERAL, "MOP->Player::ActivateSpec() need recheck, disable it now");
+    return;
+    /*if (GetActiveSpec() == spec)
         return;
 
     if (spec > GetSpecsCount())
@@ -26415,8 +26424,7 @@ void Player::ActivateSpec(uint8 spec)
     ClearComboPointHolders();
     ClearAllReactives();
     UnsummonAllTotems();
-    ExitVehicle();
-    RemoveAllControlled();
+    RemoveAllControlled();*/ //mop disabled it
     /*RemoveAllAurasOnDeath();
     if (GetPet())
         GetPet()->RemoveAllAurasOnDeath();*/
@@ -26425,7 +26433,7 @@ void Player::ActivateSpec(uint8 spec)
     //ExitVehicle(); // should be impossible to switch specs from inside a vehicle..
 
     // Let client clear his current Actions
-    SendActionButtons(2);
+    /*SendActionButtons(2);
     // m_actionButtons.clear() is called in the next _LoadActionButtons
     for (uint32 talentId = 0; talentId < sTalentStore.GetNumRows(); ++talentId)
     {
@@ -26465,16 +26473,10 @@ void Player::ActivateSpec(uint8 spec)
     // Remove spec specific spells
     for (uint32 i = 0; i < MAX_TALENT_TABS; ++i)
     {
-        uint32 const* talentTabs = GetTalentTabPages(getClass());
-        std::vector<uint32> const* specSpells = GetTalentTreePrimarySpells(talentTabs[i]);
+        std::vector<uint32> const* specSpells = GetTalentTreePrimarySpells(GetTalentTabPages(getClass())[i]);
         if (specSpells)
             for (size_t i = 0; i < specSpells->size(); ++i)
                 removeSpell(specSpells->at(i), true);
-
-        TalentTabEntry const* talentTabInfo = sTalentTabStore.LookupEntry(talentTabs[i]);
-        for (uint32 i = 0; i < MAX_MASTERY_SPELLS; ++i)
-            if (uint32 mastery = talentTabInfo->MasterySpellId[i])
-                removeSpell(mastery, true);
     }
 
     // set glyphs
@@ -26523,12 +26525,6 @@ void Player::ActivateSpec(uint8 spec)
         for (size_t i = 0; i < specSpells->size(); ++i)
             learnSpell(specSpells->at(i), false);
 
-    if (CanUseMastery())
-        if (TalentTabEntry const* talentTabInfo = sTalentTabStore.LookupEntry(GetPrimaryTalentTree(GetActiveSpec())))
-            for (uint32 i = 0; i < MAX_MASTERY_SPELLS; ++i)
-                if (uint32 mastery = talentTabInfo->MasterySpellId[i])
-                    learnSpell(mastery, false);
-
     // set glyphs
     for (uint8 slot = 0; slot < MAX_GLYPH_SLOT_INDEX; ++slot)
     {
@@ -26562,7 +26558,7 @@ void Player::ActivateSpec(uint8 spec)
     SetPower(pw, 0);
 
     if (!sTalentTabStore.LookupEntry(GetPrimaryTalentTree(GetActiveSpec())))
-        ResetTalents(true);
+        ResetTalents(true);*/
 }
 
 void Player::ResetTimeSync()
