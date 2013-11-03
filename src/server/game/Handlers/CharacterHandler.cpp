@@ -246,9 +246,8 @@ void WorldSession::HandleCharEnum(PreparedQueryResult result)
             Player::BuildEnumData(result, &dataBuffer, &bitBuffer);
 
             _legitCharacters.insert(guidLow);
-            if (!sWorld->HasCharacterNameData(guidLow)) // This can happen if characters are inserted into the database manually. Core hasn't loaded name data yet.
-                sWorld->AddCharacterNameData(guidLow, (*result)[1].GetString(), (*result)[4].GetUInt8(), (*result)[2].GetUInt8(), (*result)[3].GetUInt8(), (*result)[7].GetUInt8());
-        } while (result->NextRow());
+            } 
+            while (result->NextRow());
 
         bitBuffer.FlushBits();
     }
@@ -285,17 +284,13 @@ void WorldSession::HandleCharEnumOpcode(WorldPacket & /*recvData*/)
 void WorldSession::HandleCharCreateOpcode(WorldPacket& recvData)
 {
     std::string name;
-    uint8 race_, class_;
+    uint8 race_, class_, gender, skin, face, hairStyle, hairColor, facialHair, outfitId;
 
-    recvData >> name;
+    recvData >> gender >> hairColor >> outfitId;
+    recvData >> race_ >> class_ >> face>> facialHair >> skin >> hairStyle;
 
-    recvData >> race_;
-    recvData >> class_;
-
-    // extract other data required for player creating
-    uint8 gender, skin, face, hairStyle, hairColor, facialHair, outfitId;
-    recvData >> gender >> skin >> face;
-    recvData >> hairStyle >> hairColor >> facialHair >> outfitId;
+    uint8 nameLength = recvData.ReadBits(7);
+    name = recvData.ReadString(nameLength);
 
     WorldPacket data(SMSG_CHAR_CREATE, 1);                  // returned with diff.values in all cases
 
@@ -789,26 +784,11 @@ void WorldSession::HandlePlayerLoginOpcode(WorldPacket& recvData)
     }
 
     m_playerLoading = true;
-    ObjectGuid playerGuid;
 
     TC_LOG_DEBUG(LOG_FILTER_NETWORKIO, "WORLD: Recvd Player Logon Message");
-    playerGuid[2] = recvData.ReadBit();
-    playerGuid[3] = recvData.ReadBit();
-    playerGuid[0] = recvData.ReadBit();
-    playerGuid[6] = recvData.ReadBit();
-    playerGuid[4] = recvData.ReadBit();
-    playerGuid[5] = recvData.ReadBit();
-    playerGuid[1] = recvData.ReadBit();
-    playerGuid[7] = recvData.ReadBit();
-
-    recvData.ReadByteSeq(playerGuid[2]);
-    recvData.ReadByteSeq(playerGuid[7]);
-    recvData.ReadByteSeq(playerGuid[0]);
-    recvData.ReadByteSeq(playerGuid[3]);
-    recvData.ReadByteSeq(playerGuid[5]);
-    recvData.ReadByteSeq(playerGuid[6]);
-    recvData.ReadByteSeq(playerGuid[1]);
-    recvData.ReadByteSeq(playerGuid[4]);
+    
+    uint8 guidMask[8] = { 6, 3, 0, 5, 7, 2, 1, 4 };
+    uint8 guidBytes[8] = { 1, 0, 3, 2, 4, 7, 5, 6 };
 
     TC_LOG_DEBUG(LOG_FILTER_NETWORKIO, "Character (Guid: %u) logging in", GUID_LOPART(playerGuid));
 
@@ -1105,7 +1085,7 @@ void WorldSession::HandlePlayerLogin(LoginQueryHolder* holder)
                    0,  /* Vrykul */                            0,  /* Tuskarr */
                    0,  /* Forest Troll */                      0,  /* Taunka */
                    0,  /* Northrend Skeleton */                0,  /* Ice Troll */
-               79596,  /* Worgen - Young Mastiff */
+               79596,  /* Worgen - Young Mastiff */        57239,  /* Pandaren - Wise Turtle*/
             };
 
             pCurrChar->CastSpell(pCurrChar, HunterCreatePetSpells[pCurrChar->getRace()], true);
@@ -1313,11 +1293,38 @@ void WorldSession::HandleChangePlayerNameOpcodeCallBack(PreparedQueryResult resu
 
 void WorldSession::HandleSetPlayerDeclinedNames(WorldPacket& recvData)
 {
-    uint64 guid;
+    ObjectGuid guid;
+    uint32 nameLength = 0;
+    guid[0] = recvData.ReadBit();
+    guid[3] = recvData.ReadBit();
+    guid[6] = recvData.ReadBit();
+    guid[2] = recvData.ReadBit();
+    guid[7] = recvData.ReadBit();
+    guid[5] = recvData.ReadBit();
+    guid[1] = recvData.ReadBit();
+    guid[4] = recvData.ReadBit();
+   
+    for (uint32 i = 0; i < MAX_DECLINED_NAME_CASES; ++i)
+    {
+        uint32 nameLength = recvData.ReadBits(7);
+    }
 
-    recvData >> guid;
+    for (uint32 i = 0; i < MAX_DECLINED_NAME_CASES; ++i)
+    {
+        std::string name = recvData.ReadString(nameLength);
+    }
 
-    // not accept declined names for unsupported languages
+    recvData.FlushBits();
+
+    recvData.ReadByteSeq(guid[2]);
+    recvData.ReadByteSeq(guid[0]);
+    recvData.ReadByteSeq(guid[3]);
+    recvData.ReadByteSeq(guid[6]);
+    recvData.ReadByteSeq(guid[1]);
+    recvData.ReadByteSeq(guid[5]);
+    recvData.ReadByteSeq(guid[7]);
+    recvData.ReadByteSeq(guid[4]);
+    
     std::string name;
     if (!sObjectMgr->GetPlayerNameByGUID(guid, name))
     {
@@ -1946,6 +1953,9 @@ void WorldSession::HandleCharFactionOrRaceChange(WorldPacket& recvData)
                     break;
                 case RACE_GOBLIN:
                     stmt->setUInt16(1, 792);
+                    break;
+                case RACE_PANDAREN_NEUTRAL:
+                    stmt->setUInt16(1, 905);
                     break;
             }
 
