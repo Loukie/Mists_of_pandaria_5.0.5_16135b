@@ -1392,8 +1392,9 @@ bool Pet::addSpell(uint32 spellId, ActiveStates active /*= ACT_DECIDE*/, PetSpel
     else
         newspell.active = active;
 
+    TC_LOG_ERROR(LOG_FILTER_GENERAL, "MOP->Pet::addSpell() remove relate talent code");
     // talent: unlearn all other talent ranks (high and low)
-    if (TalentSpellPos const* talentPos = GetTalentSpellPos(spellId))
+    /*if (TalentSpellPos const* talentPos = GetTalentSpellPos(spellId))
     {
         if (TalentEntry const* talentInfo = sTalentStore.LookupEntry(talentPos->talent_id))
         {
@@ -1441,7 +1442,7 @@ bool Pet::addSpell(uint32 spellId, ActiveStates active /*= ACT_DECIDE*/, PetSpel
                     return false;
             }
         }
-    }
+    }*/
 
     m_spells[spellId] = newspell;
 
@@ -1642,7 +1643,7 @@ bool Pet::resetTalents()
         return false;
     }
 
-    for (uint32 i = 0; i < sTalentStore.GetNumRows(); ++i)
+    /*for (uint32 i = 0; i < sTalentStore.GetNumRows(); ++i) //MOP fix compile..need fix later
     {
         TalentEntry const* talentInfo = sTalentStore.LookupEntry(i);
 
@@ -1681,7 +1682,7 @@ bool Pet::resetTalents()
                     ++itr;
             }
         }
-    }
+    }*/
 
     SetFreeTalentPoints(talentPointsForLevel);
 
