@@ -389,6 +389,7 @@ public:
     uint32 SpellShapeshiftId;
     uint32 SpellTargetRestrictionsId;
     uint32 SpellTotemsId;
+    uint32 SpellMiscId;
     // SpellScalingEntry
     int32  CastTimeMin;
     int32  CastTimeMax;
@@ -401,6 +402,7 @@ public:
     SpellChainNode const* ChainEntry;
 
     // struct access functions
+    SpellMiscEntry const* GetSpellMiscs() const;
     SpellTargetRestrictionsEntry const* GetSpellTargetRestrictions() const;
     SpellAuraOptionsEntry const* GetSpellAuraOptions() const;
     SpellAuraRestrictionsEntry const* GetSpellAuraRestrictions() const;
