@@ -75,6 +75,37 @@ void WorldSession::HandleNameQueryOpcode(WorldPacket& recvData)
     SendNameQueryOpcode(guid);
 }
 
+void WorldSession::HandleRealmCache(WorldPacket& recvData)
+{
+    uint32 rev_realmid;
+    recvData >> rev_realmid;
+    TC_LOG_DEBUG(LOG_FILTER_NETWORKIO, "Send SMSG_REALM_CACHE rev_realmid %u realmID %u",rev_realmid, realmID);
+
+    PreparedStatement* stmt = LoginDatabase.GetPreparedStatement(LOGIN_SEL_REALMLIST);
+    PreparedQueryResult result = LoginDatabase.Query(stmt);
+
+    std::string realmName = "";
+    WorldPacket data(SMSG_REALM_CACHE);
+    if (result)
+    {
+        do
+        {
+            Field* fields = result->Fetch();
+            uint32 db_realmId   = fields[0].GetUInt32();
+            if (db_realmId == realmID)
+                realmName = fields[1].GetString();
+        }
+        while (result->NextRow());
+    }
+
+    data << rev_realmid;
+    data << uint8(0);
+    data << uint8(realmID);  //realmid ?? not test
+    data << realmName;
+    data << realmName;
+    SendPacket(&data);
+}
+
 void WorldSession::HandleQueryTimeOpcode(WorldPacket & /*recvData*/)
 {
     SendQueryTimeResponse();
