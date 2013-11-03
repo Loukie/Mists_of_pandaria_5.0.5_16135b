@@ -116,12 +116,12 @@ void LoadDB2Stores(std::string const& dataPath)
         TC_LOG_ERROR(LOG_FILTER_GENERAL, "\nSome required *.db2 files (%u from %d) not found or not compatible:\n%s", (uint32)bad_db2_files.size(), DB2FilesCount, str.c_str());
         exit(1);
     }
-
+    
     // Check loaded DB2 files proper version
-    if (!sItemStore.LookupEntry(83086)             ||       // last item added in 4.3.4 (15595)
-        !sItemExtendedCostStore.LookupEntry(3872)  )        // last item extended cost added in 4.3.4 (15595)
+    if (!sItemStore.LookupEntry(91016)             ||       // last item added in 5.0.5b (16135)
+        !sItemExtendedCostStore.LookupEntry(3902)  )        // last item extended cost added in 5.0.5b (16135)
     {
-        TC_LOG_ERROR(LOG_FILTER_GENERAL, "Please extract correct db2 files from client 4.3.4 15595.");
+        TC_LOG_ERROR(LOG_FILTER_GENERAL, "Please extract correct db2 files from client 5.0.5b 16135.");
         exit(1);
     }
 
