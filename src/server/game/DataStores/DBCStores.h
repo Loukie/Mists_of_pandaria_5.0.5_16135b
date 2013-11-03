@@ -52,6 +52,7 @@ enum ContentLevels
     CONTENT_61_70   = 1,
     CONTENT_71_80   = 2,
     CONTENT_81_85   = 3,
+    CONTENT_86_90   = 4,
     MAX_CONTENT
 };
 
@@ -207,6 +208,7 @@ extern DBCStorage <SpellEffectEntry>             sSpellEffectStore;
 extern DBCStorage <SpellEquippedItemsEntry>      sSpellEquippedItemsStore;
 extern DBCStorage <SpellInterruptsEntry>         sSpellInterruptsStore;
 extern DBCStorage <SpellLevelsEntry>             sSpellLevelsStore;
+extern DBCStorage <SpellMiscEntry>               sSpellMiscStore;
 extern DBCStorage <SpellPowerEntry>              sSpellPowerStore;
 extern DBCStorage <SpellReagentsEntry>           sSpellReagentsStore;
 extern DBCStorage <SpellScalingEntry>            sSpellScalingStore;
