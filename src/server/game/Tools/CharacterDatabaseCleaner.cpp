@@ -138,11 +138,13 @@ void CharacterDatabaseCleaner::CleanCharacterSpell()
 
 bool CharacterDatabaseCleaner::TalentCheck(uint32 talent_id)
 {
-    TalentEntry const* talentInfo = sTalentStore.LookupEntry(talent_id);
+    sLog->outError(LOG_FILTER_GENERAL, "MOP->CharacterDatabaseCleaner::TalentCheck(), need refix");
+    return false;
+    /*TalentEntry const* talentInfo = sTalentStore.LookupEntry(talent_id);
     if (!talentInfo)
         return false;
 
-    return sTalentTabStore.LookupEntry(talentInfo->TalentTab);
+    return sTalentTabStore.LookupEntry(talentInfo->TalentTab);*/
 }
 
 void CharacterDatabaseCleaner::CleanCharacterTalent()
