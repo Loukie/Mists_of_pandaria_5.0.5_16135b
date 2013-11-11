@@ -55,6 +55,7 @@ struct ItemSparseEntry
     uint32     Flags2;                                       // 3
     float      Unk430_1;
     float      Unk430_2;
+	uint32	   Unk505;
     uint32     BuyCount;
     uint32     BuyPrice;                                     // 4
     uint32     SellPrice;                                    // 5
@@ -88,11 +89,11 @@ struct ItemSparseEntry
     int32      SpellCategory[MAX_ITEM_PROTO_SPELLS];         // 85 - 89
     int32      SpellCategoryCooldown[MAX_ITEM_PROTO_SPELLS]; // 90 - 94
     uint32     Bonding;                                      // 95
-    LocalizedString* Name;                                   // 96
-    LocalizedString* Name2;                                  // 97
-    LocalizedString* Name3;                                  // 98
-    LocalizedString* Name4;                                  // 99
-    LocalizedString* Description;                            // 100
+    char*      Name;                                         // 96
+    char*      Name2;                                        // 97
+    char*      Name3;                                        // 98
+    char*      Name4;                                        // 99
+    char*      Description;                                  // 100
     uint32     PageText;                                     // 101
     uint32     LanguageID;                                   // 102
     uint32     PageMaterial;                                 // 103
@@ -135,11 +136,7 @@ struct ItemExtendedCostEntry
     //uint32    ItemPurchaseGroup;                          // 15
     uint32      RequiredCurrency[MAX_ITEM_EXT_COST_CURRENCIES];// 16-20 required curency id
     uint32      RequiredCurrencyCount[MAX_ITEM_EXT_COST_CURRENCIES];// 21-25 required curency count
-    uint32      RequiredFactionId;
-    uint32      RequiredFactionStanding;
-    uint32      RequirementFlags;
-    uint32      RequiredGuildLevel;
-    uint32      RequiredAchievement;
+    //uint32    Unknown[5];                               // 26-30
 };
 
 #define KEYCHAIN_SIZE   32
@@ -148,6 +145,27 @@ struct KeyChainEntry
 {
     uint32      Id;
     uint8       Key[KEYCHAIN_SIZE];
+};
+
+struct CreatureEntry //creature.db2
+{
+	uint32		Id;								// 1 
+	uint32		Item1;							// 2
+	uint32		Item2;							// 3
+	uint32		Item3;							// 4
+	uint32		Projectile1;					// 5
+	uint32		Projectile2;					// 6
+	uint32		Mount;							// 7
+	uint32		DisplayId1;						// 8
+	uint32		DisplayId2;						// 9
+	uint32		DisplayId3;						// 10
+	uint32		DisplayId4;						// 11
+	float		Float1;							// 12
+	float		Float2;							// 13	
+	float		Float3;							// 14	
+	float		Float4;							// 15
+	uint32		Name;							// 16
+	uint32		InhabitType;					// 17
 };
 
 // GCC has alternative #pragma pack(N) syntax and old gcc version does not support pack(push, N), also any gcc version does not support it at some platform
