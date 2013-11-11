@@ -40,36 +40,14 @@ void WorldSession::HandleLearnPreviewTalents(WorldPacket& recvPacket)
 {
     TC_LOG_DEBUG(LOG_FILTER_NETWORKIO, "CMSG_LEARN_PREVIEW_TALENTS");
 
-    int32 tabPage;
     uint32 talentsCount;
-    recvPacket >> tabPage;    // talent tree
-
-    // prevent cheating (selecting new tree with points already in another)
-    if (tabPage >= 0)   // -1 if player already has specialization
-    {
-        if (TalentTabEntry const* talentTabEntry = sTalentTabStore.LookupEntry(_player->GetPrimaryTalentTree(_player->GetActiveSpec())))
-        {
-            if (talentTabEntry->tabpage != uint32(tabPage))
-            {
-                recvPacket.rfinish();
-                return;
-            }
-        }
-    }
-
     recvPacket >> talentsCount;
 
-    uint32 talentId, talentRank;
+    uint32 talentId;
 
     for (uint32 i = 0; i < talentsCount; ++i)
     {
-        recvPacket >> talentId >> talentRank;
-
-        if (!_player->LearnTalent(talentId, talentRank))
-        {
-            recvPacket.rfinish();
-            break;
-        }
+        recvPacket >> talentId;
     }
 
     _player->SendTalentsInfoData(false);
