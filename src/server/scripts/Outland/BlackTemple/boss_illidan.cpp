@@ -144,7 +144,7 @@ enum Misc
 };
 
 /**** Creature Summon and Recognition IDs ****/
-enum CreatureEntry
+enum Creatures
 {
     EMPTY                           =       0,
     AKAMA                           =   22990,
