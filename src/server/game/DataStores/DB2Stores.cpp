@@ -27,6 +27,7 @@ DB2Storage<ItemCurrencyCostEntry> sItemCurrencyCostStore(ItemCurrencyCostfmt);
 DB2Storage<ItemExtendedCostEntry> sItemExtendedCostStore(ItemExtendedCostEntryfmt);
 DB2Storage<ItemSparseEntry> sItemSparseStore(ItemSparsefmt, &DB2Utilities::HasItemSparseEntry, &DB2Utilities::WriteItemSparseDbReply);
 DB2Storage<KeyChainEntry> sKeyChainStore(KeyChainfmt);
+DB2Storage<CreatureEntry> sCreatureStore(Creaturefmt);
 
 typedef std::list<std::string> DB2StoreProblemList;
 
@@ -94,12 +95,13 @@ void LoadDB2Stores(std::string const& dataPath)
 
     DB2StoreProblemList bad_db2_files;
     uint32 availableDb2Locales = 0xFF;
-
+	
     LoadDB2(availableDb2Locales, bad_db2_files, sItemStore, db2Path, "Item.db2");
     LoadDB2(availableDb2Locales, bad_db2_files, sItemCurrencyCostStore, db2Path, "ItemCurrencyCost.db2");
     LoadDB2(availableDb2Locales, bad_db2_files, sItemSparseStore, db2Path, "Item-sparse.db2");
     LoadDB2(availableDb2Locales, bad_db2_files, sItemExtendedCostStore, db2Path, "ItemExtendedCost.db2");
     LoadDB2(availableDb2Locales, bad_db2_files, sKeyChainStore, db2Path, "KeyChain.db2");
+    LoadDB2(availableDb2Locales, bad_db2_files, sCreatureStore, db2Path, "Creature.db2");
 
     // error checks
     if (bad_db2_files.size() >= DB2FilesCount)
@@ -116,12 +118,12 @@ void LoadDB2Stores(std::string const& dataPath)
         TC_LOG_ERROR(LOG_FILTER_GENERAL, "\nSome required *.db2 files (%u from %d) not found or not compatible:\n%s", (uint32)bad_db2_files.size(), DB2FilesCount, str.c_str());
         exit(1);
     }
-
+    
     // Check loaded DB2 files proper version
-    if (!sItemStore.LookupEntry(83086)             ||       // last item added in 4.3.4 (15595)
-        !sItemExtendedCostStore.LookupEntry(3872)  )        // last item extended cost added in 4.3.4 (15595)
+    if (!sItemStore.LookupEntry(91016)             ||       // last item added in 5.0.5b (16135)
+        !sItemExtendedCostStore.LookupEntry(3902)  )        // last item extended cost added in 5.0.5b (16135)
     {
-        TC_LOG_ERROR(LOG_FILTER_GENERAL, "Please extract correct db2 files from client 4.3.4 15595.");
+        TC_LOG_ERROR(LOG_FILTER_GENERAL, "Please extract correct db2 files from client 5.0.5b 16135.");
         exit(1);
     }
 
