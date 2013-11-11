@@ -365,9 +365,9 @@ SpellEffectInfo::SpellEffectInfo(SpellEntry const* /*spellEntry*/, SpellInfo con
     TriggerSpell = _effect ? _effect->EffectTriggerSpell : 0;
     SpellClassMask = _effect ? _effect->EffectSpellClassMask : flag96(0);
     ImplicitTargetConditions = NULL;
-    ScalingMultiplier = scaling ? scaling->Multiplier[_effIndex] : 0.0f;
-    DeltaScalingMultiplier = scaling ? scaling->RandomMultiplier[_effIndex] : 0.0f;
-    ComboScalingMultiplier = scaling ? scaling->OtherMultiplier[_effIndex] : 0.0f;
+    ScalingMultiplier = scaling ? NULL : 0.0f; // Multiplier[3] DELETE form dbcstruture. so.here need recheck
+    DeltaScalingMultiplier = scaling ? NULL : 0.0f;// RandomMultiplier[3] need recheck
+    ComboScalingMultiplier = scaling ? NULL : 0.0f;// OtherMultiplier[3] need recheck
 }
 
 bool SpellEffectInfo::IsEffect() const
@@ -619,16 +619,16 @@ float SpellEffectInfo::CalcRadius(Unit* caster, Spell* spell) const
         {
             //! Still not sure which to pick. Anyway at the current time (Patch 4.3.4) most of the spell effects
             //! have no radius mod per level, and RadiusMin is equal to RadiusMax.
-            return MaxRadiusEntry->RadiusMin;
+            return MaxRadiusEntry->radiusHostile; //Just fix compile
         }
         return 0.0f;
     }
 
-    float radius = RadiusEntry->RadiusMin;
+    float radius = RadiusEntry->radiusHostile; //Just fix compile
     if (caster)
     {
-        radius += RadiusEntry->RadiusPerLevel * caster->getLevel();
-        radius = std::min(radius, RadiusEntry->RadiusMax);
+        radius += RadiusEntry->radiusHostile * caster->getLevel();
+        radius = std::min(radius, RadiusEntry->radiusFriend); //Just fix compile
         if (Player* modOwner = caster->GetSpellModOwner())
             modOwner->ApplySpellMod(_spellInfo->Id, SPELLMOD_RADIUS, radius, spell);
     }
@@ -866,32 +866,31 @@ SpellEffectInfo::StaticData SpellEffectInfo::_data[TOTAL_SPELL_EFFECTS] =
 SpellInfo::SpellInfo(SpellEntry const* spellEntry, SpellEffectEntry const** effects)
 {
     Id = spellEntry->Id;
-    Attributes = spellEntry->Attributes;
-    AttributesEx = spellEntry->AttributesEx;
-    AttributesEx2 = spellEntry->AttributesEx2;
-    AttributesEx3 = spellEntry->AttributesEx3;
-    AttributesEx4 = spellEntry->AttributesEx4;
-    AttributesEx5 = spellEntry->AttributesEx5;
-    AttributesEx6 = spellEntry->AttributesEx6;
-    AttributesEx7 = spellEntry->AttributesEx7;
-    AttributesEx8 = spellEntry->AttributesEx8;
-    AttributesEx9 = spellEntry->AttributesEx9;
-    AttributesEx10 = spellEntry->AttributesEx10;
+    SpellMiscEntry const* misc = GetSpellMiscs();
+    Attributes = misc ? misc->Attributes : 0;
+    AttributesEx = misc ? misc->AttributesEx : 0;
+    AttributesEx2 =  misc ? misc->AttributesEx2 : 0;
+    AttributesEx3 =  misc ? misc->AttributesEx3 : 0;
+    AttributesEx4 =  misc ? misc->AttributesEx4 : 0;
+    AttributesEx5 =  misc ? misc->AttributesEx5 : 0;
+    AttributesEx6 =  misc ? misc->AttributesEx6 : 0;
+    AttributesEx7 =  misc ? misc->AttributesEx7 : 0;
+    AttributesEx8 =  misc ? misc->AttributesEx8 : 0;
+    AttributesEx9 =  misc ? misc->AttributesEx9 : 0;
     AttributesCu = 0;
-    CastTimeEntry = spellEntry->CastingTimeIndex ? sSpellCastTimesStore.LookupEntry(spellEntry->CastingTimeIndex) : NULL;
-    DurationEntry = spellEntry->DurationIndex ? sSpellDurationStore.LookupEntry(spellEntry->DurationIndex) : NULL;
-    PowerType = spellEntry->powerType;
-    RangeEntry = spellEntry->rangeIndex ? sSpellRangeStore.LookupEntry(spellEntry->rangeIndex) : NULL;
-    Speed = spellEntry->speed;
+    CastTimeEntry = misc ? sSpellCastTimesStore.LookupEntry(misc->CastingTimeIndex) : NULL;
+    DurationEntry = misc ? sSpellDurationStore.LookupEntry(misc->DurationIndex) : NULL;
+    RangeEntry = misc ? sSpellRangeStore.LookupEntry(misc->rangeIndex) : NULL;
+    Speed = misc ? misc->speed : 0;
     for (uint8 i = 0; i < 2; ++i)
-        SpellVisual[i] = spellEntry->SpellVisual[i];
-    SpellIconID = spellEntry->SpellIconID;
-    ActiveIconID = spellEntry->activeIconID;
+        SpellVisual[i] = misc ? misc->SpellVisual[i] : 0;
+    SpellIconID = misc ? misc->SpellIconID : 0;
+    ActiveIconID = misc ? misc->activeIconID : 0;
     SpellName = spellEntry->SpellName;
     Rank = spellEntry->Rank;
-    SchoolMask = spellEntry->SchoolMask;
+    SchoolMask = misc ? misc->SchoolMask : 0;
     RuneCostID = spellEntry->runeCostID;
-    SpellDifficultyId = spellEntry->SpellDifficultyId;
+    //SpellDifficultyId = spellEntry->SpellDifficultyId;
     SpellScalingId = spellEntry->SpellScalingId;
     SpellAuraOptionsId = spellEntry->SpellAuraOptionsId;
     SpellAuraRestrictionsId = spellEntry->SpellAuraRestrictionsId;
@@ -989,6 +988,7 @@ SpellInfo::SpellInfo(SpellEntry const* spellEntry, SpellEffectEntry const** effe
     ManaCostPerlevel = _power ? _power->manaCostPerlevel : 0;
     ManaCostPercentage = _power ? _power->ManaCostPercentage : 0;
     ManaPerSecond = _power ? _power->manaPerSecond : 0;
+    PowerType = _power ? _power->PowerType : 0;
 
     // SpellReagentsEntry
     SpellReagentsEntry const* _reagents = GetSpellReagents();
@@ -2811,6 +2811,11 @@ bool SpellInfo::_IsPositiveTarget(uint32 targetA, uint32 targetB)
 SpellTargetRestrictionsEntry const* SpellInfo::GetSpellTargetRestrictions() const
 {
     return SpellTargetRestrictionsId ? sSpellTargetRestrictionsStore.LookupEntry(SpellTargetRestrictionsId) : NULL;
+}
+
+SpellMiscEntry const* SpellInfo::GetSpellMiscs() const
+{
+    return SpellMiscId ? sSpellMiscStore.LookupEntry(SpellMiscId) : NULL;
 }
 
 SpellEquippedItemsEntry const* SpellInfo::GetSpellEquippedItems() const
