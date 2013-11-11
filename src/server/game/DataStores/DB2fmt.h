@@ -20,8 +20,9 @@
 
 char const Itemfmt[]="niiiiiii";
 char const ItemCurrencyCostfmt[]="xn";
-char const ItemSparsefmt[]="niiiffiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiifiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiisssssiiiiiiiiiiiiiiiiiiiiiifiiifii";
-char const ItemExtendedCostEntryfmt[]="nxxiiiiiiiiiiiixiiiiiiiiiiiiiii";
+const char ItemSparsefmt[]="niiiffiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiifiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiisssssiiiiiiiiiiiiiiiiiiiiiifiiifii";
+char const ItemExtendedCostEntryfmt[]="nxxiiiiiiiiiiiixiiiiiiiiiixxxxx";
 char const KeyChainfmt[]="nbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb";
+char const Creaturefmt[]="niiiiiiiiiiffffii";
 
 #endif
